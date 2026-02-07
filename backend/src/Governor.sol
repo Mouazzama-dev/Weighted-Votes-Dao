@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// Interface ko naye token structure (Stake struct) ke mutabiq update kiya hai
 interface IGovernanceToken {
-    function getVotingPower(address) external view returns (uint256);
-    function stakedBalances(address) external view returns (uint256); // Added this
+    function getVotingPower(address account) external view returns (uint256);
+    // GovernanceToken mein 'stakes' mapping public hai, isliye Solidity auto-getter banati hai
+    // Jo (uint256 amount, uint256 startTime) return karta hai
+    function stakes(address account) external view returns (uint256 amount, uint256 startTime);
 }
 
 contract Governor {
@@ -26,9 +29,11 @@ contract Governor {
     }
 
     function createProposal(string calldata _description, uint256 _duration) external {
-        // Technical Check: User must have at least 50 tokens staked
-        // 1000 * 10^18 because of 18 decimals
-        require(token.stakedBalances(msg.sender) >= 50 * 10**18, "Must stake 50 GTK to propose");
+        // FIX: Mapping ki bajaye ab hum struct se 'amount' nikaal rahe hain
+        (uint256 stakedAmount, ) = token.stakes(msg.sender);
+        
+        // 50 GTK check (50 * 10^18)
+        require(stakedAmount >= 50 * 10**18, "Must stake 50 GTK to propose");
         
         proposals.push(Proposal({
             description: _description,
@@ -37,6 +42,7 @@ contract Governor {
             endTime: block.timestamp + _duration,
             executed: false
         }));
+        
         emit ProposalCreated(proposals.length - 1, _description);
     }
 
@@ -55,5 +61,10 @@ contract Governor {
         }
 
         hasVoted[_proposalId][msg.sender] = true;
+    }
+
+    // Helper function taake frontend asaani se total proposals count le sake
+    function getProposalsCount() external view returns (uint256) {
+        return proposals.length;
     }
 }

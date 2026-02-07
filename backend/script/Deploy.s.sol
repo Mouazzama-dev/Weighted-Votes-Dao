@@ -7,11 +7,17 @@ import "../src/Governor.sol";
 
 contract DeployScript is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
+        
+        // 1. GovernanceToken khud token hai, isay kisi address ki zaroorat nahi
+        // Constructor arguments zero hain (expected 0, giving 0)
+        GovernanceToken govToken = new GovernanceToken();
 
-        GovernanceToken token = new GovernanceToken();
-        new Governor(address(token));
+        // 2. Governor ko GovToken ka address dein taake wo power check kar sake
+        Governor governor = new Governor(address(govToken));
+
+        console.log("GovernanceToken Address:", address(govToken));
+        console.log("Governor Address:", address(governor));
 
         vm.stopBroadcast();
     }
