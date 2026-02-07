@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 interface IGovernanceToken {
     function getVotingPower(address) external view returns (uint256);
+    function stakedBalances(address) external view returns (uint256); // Added this
 }
 
 contract Governor {
@@ -25,6 +26,10 @@ contract Governor {
     }
 
     function createProposal(string calldata _description, uint256 _duration) external {
+        // Technical Check: User must have at least 50 tokens staked
+        // 1000 * 10^18 because of 18 decimals
+        require(token.stakedBalances(msg.sender) >= 50 * 10**18, "Must stake 50 GTK to propose");
+        
         proposals.push(Proposal({
             description: _description,
             votesFor: 0,
@@ -41,7 +46,7 @@ contract Governor {
         require(!hasVoted[_proposalId][msg.sender], "Already voted");
 
         uint256 weight = token.getVotingPower(msg.sender);
-        require(weight > 0, "No voting power (stake longer)");
+        require(weight > 0, "No voting power");
 
         if (_support) {
             p.votesFor += weight;
@@ -51,8 +56,4 @@ contract Governor {
 
         hasVoted[_proposalId][msg.sender] = true;
     }
-
-    function getVotesFor(uint256 _proposalId) external view returns (uint256) {
-    return proposals[_proposalId].votesFor;
-}
 }
