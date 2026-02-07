@@ -143,9 +143,12 @@ function App() {
     <div className="app-container">
       <div className="content-wrapper">
         <header className="header">
-          <h2>🏛️ Master's DAO</h2>
+          <h2>🏛️ DAO GOVERNANCE </h2>
           <button onClick={fetchData} className="btn-sync">🔄 Refresh</button>
         </header>
+
+        <h2 className="text-white"> DAO Governance is a decentralized governance ecosystem where users can mint custom tokens (GTK), stake them to gain influence, and participate in a democratic voting process. The project utilizes a time-weighted voting power model, rewarding long-term stakers with more significant voting influence.</h2>
+
 
         {!account ? (
           <div className="connect-container">
